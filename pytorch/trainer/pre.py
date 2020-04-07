@@ -116,7 +116,7 @@ class PreTrainer(object):
                 # Update global count number 
                 global_count = global_count + 1
                 if gpu_is_available:
-                    print("Gpu available")
+                    # print("Gpu available")
                     data, _ = [_.cuda() for _ in batch]
                 else:
                     data = batch[0]
