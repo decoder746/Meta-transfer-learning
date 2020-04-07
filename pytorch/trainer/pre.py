@@ -20,6 +20,11 @@ from utils.misc import Averager, Timer, count_acc, ensure_path
 from tensorboardX import SummaryWriter
 from dataloader.dataset_loader import DatasetLoader as Dataset
 
+
+if torch.cuda.is_available:
+    gpu_is_available = True
+else :
+    gpu_is_available = False
 class PreTrainer(object):
     """The class that contains the code for the pretrain phase."""
     def __init__(self, args):
@@ -63,7 +68,7 @@ class PreTrainer(object):
             gamma=self.args.pre_gamma)        
         
         # Set model to GPU
-        if torch.cuda.is_available():
+        if gpu_is_available():
             torch.backends.cudnn.benchmark = True
             self.model = self.model.cuda()
         
@@ -110,12 +115,13 @@ class PreTrainer(object):
             for i, batch in enumerate(tqdm_gen, 1):
                 # Update global count number 
                 global_count = global_count + 1
-                if torch.cuda.is_available():
+                if gpu_is_available():
+                    print("Gpu available")
                     data, _ = [_.cuda() for _ in batch]
                 else:
                     data = batch[0]
                 label = batch[1]
-                if torch.cuda.is_available():
+                if gpu_is_available():
                     label = label.type(torch.cuda.LongTensor)
                 else:
                     label = label.type(torch.LongTensor)
@@ -154,12 +160,12 @@ class PreTrainer(object):
 
             # Generate the labels for test 
             label = torch.arange(self.args.way).repeat(self.args.val_query)
-            if torch.cuda.is_available():
+            if gpu_is_available():
                 label = label.type(torch.cuda.LongTensor)
             else:
                 label = label.type(torch.LongTensor)
             label_shot = torch.arange(self.args.way).repeat(self.args.shot)
-            if torch.cuda.is_available():
+            if gpu_is_available():
                 label_shot = label_shot.type(torch.cuda.LongTensor)
             else:
                 label_shot = label_shot.type(torch.LongTensor)
@@ -169,7 +175,7 @@ class PreTrainer(object):
                 print('Best Epoch {}, Best Val acc={:.4f}'.format(trlog['max_acc_epoch'], trlog['max_acc']))
             # Run meta-validation
             for i, batch in enumerate(self.val_loader, 1):
-                if torch.cuda.is_available():
+                if gpu_is_available():
                     data, _ = [_.cuda() for _ in batch]
                 else:
                     data = batch[0]
